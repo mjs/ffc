@@ -18,9 +18,8 @@
 ;; Example configuration:
 ;;
 ;; (require 'ffc)
-;;
-;; (global-set-key (kbd "C-x f") 'ffc-ido-find-file)
-;;
+;; (global-set-key (kbd "C-x f") 'ffc-find-file)
+;
 ;; (add-to-list 'ffc-directories "~/some/path")
 ;; (add-to-list 'ffc-directories "~/another/path")
 ;; (ffc-refresh)
@@ -28,7 +27,6 @@
 ;;; Code:
 
 (require 'subr-x)
-(require 'ido)
 (eval-when-compile (require 'cl))
 
 ;; XXX autoloads
@@ -114,28 +112,20 @@ The file won't be added if it is matched by an entry in
            ;; Directory wasn't in entry's directory list
            (setcdr entry (cons dir-name (cdr entry)))))))
 
-(defun ffc-ido-find-file (file)
-  "Using ido, interactively open FILE using the ffc cache'.
-First select a file, matched using 'ido-switch-buffer' against the
+(defun ffc-find-file (file)
+  "Interactively open FILE using the ffc cache.
+First select a file, matched using  against the
 contents in `ffc-cache'.  If the file exist in more than one
 directory, select directory.  Finally, the file is opened."
-  (interactive (list (ffc-ido-read "File: " (hash-table-keys ffc-cache))))
+  (interactive (list (completing-read "File: " (hash-table-keys ffc-cache))))
   (let* ((dirs (gethash file ffc-cache)))
     (find-file
      (expand-file-name
       file
       (if (= (length dirs) 1)
           (car dirs)
-        (ffc-ido-read
+        (completing-read
          (format "Find %s in dir: " file) dirs))))))
-
-(defun ffc-ido-read (prompt choices)
-  "Call 'ido-read-buffer' with PROMPT and possible CHOICES specified."
-  (let ((ido-make-buffer-list-hook
-         (lambda ()
-           (setq ido-temp-list choices))))
-    (ido-read-buffer prompt)))
-
 
 (provide 'ffc)
 ;;; ffc.el ends here
